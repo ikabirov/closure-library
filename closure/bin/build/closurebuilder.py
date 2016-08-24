@@ -258,15 +258,15 @@ def main():
         src = _WrapGoogModuleSource(src)
       out.write(src.encode('utf-8') + b'\n')
   elif output_mode == 'compiled':
-    logging.warning("""\
-Closure Compiler now natively understands and orders Closure dependencies and
-is prefererred over using this script for performing JavaScript compilation.
+    # logging.warning("""\
+# Closure Compiler now natively understands and orders Closure dependencies and
+# is prefererred over using this script for performing JavaScript compilation.
 
-Please migrate your codebase.
+# Please migrate your codebase.
 
-See:
-https://github.com/google/closure-compiler/wiki/Managing-Dependencies
-""")
+# See:
+# https://github.com/google/closure-compiler/wiki/Managing-Dependencies
+# """)
 
     # Make sure a .jar is specified.
     if not options.compiler_jar:
