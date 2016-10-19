@@ -11,4 +11,6 @@
 # python
 *.pyc
 
+/update.bat
 node_modules/
+
