@@ -1143,7 +1143,17 @@ goog.html.sanitizer.HtmlSanitizer.getChildNodes_ = function(node) {
 goog.html.sanitizer.HtmlSanitizer.prototype.sanitize = function(
     unsanitizedHtml) {
   var sanitizedParent = this.sanitizeToDomNode(unsanitizedHtml);
-  var sanitizedString = new XMLSerializer().serializeToString(sanitizedParent);
+  /** @type {string} */
+  var sanitizedString = "";
+  if (typeof XMLSerializer != 'undefined') {
+    sanitizedString = new XMLSerializer().serializeToString(sanitizedParent);
+  }
+  if (!sanitizedString && sanitizedParent.xml) {
+    sanitizedString = sanitizedParent.xml.toString();
+  }
+  if (!sanitizedString) {
+    sanitizedString = unsanitizedHtml.toString();
+  }
 
   // Remove the outer span added in sanitizeToDomNode. We could create an
   // element from it and then pull out the innerHtml, but this is more
