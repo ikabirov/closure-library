@@ -64,7 +64,7 @@ var requestStats = goog.labs.net.webChannel.requestStats;
  *
  * @param {!goog.net.WebChannel.Options=} opt_options Configuration for the
  *        WebChannel instance.
- * @param {string=} opt_clientVersion An application-specific version number
+ * @param {number=} opt_clientVersion An application-specific version number
  *        that is sent to the server when connected.
  * @param {!ConnectionState=} opt_conn Previously determined connection
  *        conditions.
@@ -76,7 +76,7 @@ goog.labs.net.webChannel.WebChannelBase = function(
     opt_options, opt_clientVersion, opt_conn) {
   /**
    * The application specific version that is passed to the server.
-   * @private {?string}
+   * @private {?number}
    */
   this.clientVersion_ = opt_clientVersion || null;
 
@@ -1655,16 +1655,21 @@ WebChannelBase.prototype.onInput_ = function(respArray) {
             this.hostPrefix_, /** @type {string} */ (this.path_));
         // Open connection to receive data
         this.ensureBackChannel_();
-      } else if (nextArray[0] == 'stop') {
+      } else if (nextArray[0] == 'stop' || nextArray[0] == 'close') {
+        // treat close also as an abort
         this.signalError_(WebChannelBase.Error.STOP);
       }
     } else if (this.state_ == WebChannelBase.State.OPENED) {
-      if (nextArray[0] == 'stop') {
+      if (nextArray[0] == 'stop' || nextArray[0] == 'close') {
         if (batch && !goog.array.isEmpty(batch)) {
           this.handler_.channelHandleMultipleArrays(this, batch);
           batch.length = 0;
         }
-        this.signalError_(WebChannelBase.Error.STOP);
+        if (nextArray[0] == 'stop') {
+          this.signalError_(WebChannelBase.Error.STOP);
+        } else {
+          this.disconnect();
+        }
       } else if (nextArray[0] == 'noop') {
         // ignore - noop to keep connection happy
       } else {
