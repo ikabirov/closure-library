@@ -1227,7 +1227,7 @@ if (goog.DEPENDENCIES_ENABLED) {
    * @private
    */
   goog.protectScriptTag_ = function(str) {
-    return str.replace(/<\/(SCRIPT)/ig, '\\x3c\\$1');
+    return str.replace(/<\/(SCRIPT)/ig, '\\x3c/$1');
   };
 
   /**
@@ -1478,21 +1478,16 @@ goog.loadModule = function(moduleDef) {
 
 
 /**
- * @private @const {function(string):?}
- *
- * The new type inference warns because this function has no formal
- * parameters, but its jsdoc says that it takes one argument.
- * (The argument is used via arguments[0], but NTI does not detect this.)
- * @suppress {newCheckTypes}
+ * @private @const
  */
-goog.loadModuleFromSource_ = function() {
+goog.loadModuleFromSource_ = /** @type {function(string):?} */ (function() {
   // NOTE: we avoid declaring parameters or local variables here to avoid
   // masking globals or leaking values into the module definition.
   'use strict';
   var exports = {};
   eval(arguments[0]);
   return exports;
-};
+});
 
 
 /**
@@ -1518,6 +1513,15 @@ goog.normalizePath_ = function(path) {
   }
   return components.join('/');
 };
+
+
+/**
+ * Provides a hook for loading a file when using Closure's goog.require() API
+ * with goog.modules.  In particular this hook is provided to support Node.js.
+ *
+ * @type {(function(string):string)|undefined}
+ */
+goog.global.CLOSURE_LOAD_FILE_SYNC;
 
 
 /**
@@ -1989,17 +1993,15 @@ goog.cloneObject = function(obj) {
 
 /**
  * A native implementation of goog.bind.
- * @param {Function} fn A function to partially apply.
- * @param {Object|undefined} selfObj Specifies the object which this should
- *     point to when the function is run.
+ * @param {?function(this:T, ...)} fn A function to partially apply.
+ * @param {T} selfObj Specifies the object which this should point to when the
+ *     function is run.
  * @param {...*} var_args Additional arguments that are partially applied to the
  *     function.
- * @return {!Function} A partially-applied form of the function bind() was
+ * @return {!Function} A partially-applied form of the function goog.bind() was
  *     invoked as a method of.
+ * @template T
  * @private
- * @suppress {deprecated} The compiler thinks that Function.prototype.bind is
- *     deprecated because some people have declared a pure-JS version.
- *     Only the pure-JS version is truly deprecated.
  */
 goog.bindNative_ = function(fn, selfObj, var_args) {
   return /** @type {!Function} */ (fn.call.apply(fn.bind, arguments));
@@ -2008,13 +2010,14 @@ goog.bindNative_ = function(fn, selfObj, var_args) {
 
 /**
  * A pure-JS implementation of goog.bind.
- * @param {Function} fn A function to partially apply.
- * @param {Object|undefined} selfObj Specifies the object which this should
- *     point to when the function is run.
+ * @param {?function(this:T, ...)} fn A function to partially apply.
+ * @param {T} selfObj Specifies the object which this should point to when the
+ *     function is run.
  * @param {...*} var_args Additional arguments that are partially applied to the
  *     function.
- * @return {!Function} A partially-applied form of the function bind() was
+ * @return {!Function} A partially-applied form of the function goog.bind() was
  *     invoked as a method of.
+ * @template T
  * @private
  */
 goog.bindJs_ = function(fn, selfObj, var_args) {
@@ -2212,6 +2215,17 @@ goog.cssNameMapping_;
  * @see goog.setCssNameMapping
  */
 goog.cssNameMappingStyle_;
+
+
+
+/**
+ * A hook for modifying the default behavior goog.getCssName. The function
+ * if present, will recieve the standard output of the goog.getCssName as
+ * its input.
+ *
+ * @type {(function(string):string)|undefined}
+ */
+goog.global.CLOSURE_CSS_NAME_MAP_FN;
 
 
 /**
@@ -2843,11 +2857,22 @@ goog.createRequiresTranspilation_ = function() {
     }
   }
 
+  var userAgent = goog.global.navigator && goog.global.navigator.userAgent ?
+      goog.global.navigator.userAgent :
+      '';
+
   // Identify ES3-only browsers by their incorrect treatment of commas.
   addNewerLanguageTranspilationCheck('es5', function() {
     return evalCheck('[1,].length==1');
   });
   addNewerLanguageTranspilationCheck('es6', function() {
+    // Edge has a non-deterministic (i.e., not reproducible) bug with ES6:
+    // https://github.com/Microsoft/ChakraCore/issues/1496.
+    var re = /Edge\/(\d+)(\.\d)*/i;
+    var edgeUserAgent = userAgent.match(re);
+    if (edgeUserAgent && Number(edgeUserAgent[1]) < 15) {
+      return false;
+    }
     // Test es6: [FF50 (?), Edge 14 (?), Chrome 50]
     //   (a) default params (specifically shadowing locals),
     //   (b) destructuring, (c) block-scoped functions,
