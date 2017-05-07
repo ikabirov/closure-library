@@ -17,7 +17,7 @@
  * CLDR data using ICU. The algorithm is to list only country codes (not
  * containments representing a groups of countries).
  *
- * File generated from CLDR ver. 30.0.2
+ * File generated from CLDR ver. 31.0.1
  */
 
 // clang-format off
@@ -107,7 +107,7 @@ goog.locale.countries = [
   'ET', // Ethiopia
   'FI', // Finland
   'FJ', // Fiji
-  'FK', // Falkland Islands
+  'FK', // Falkland Islands (Islas Malvinas)
   'FM', // Micronesia
   'FO', // Faroe Islands
   'FR', // France
@@ -180,7 +180,7 @@ goog.locale.countries = [
   'MF', // St. Martin
   'MG', // Madagascar
   'MH', // Marshall Islands
-  'MK', // Macedonia
+  'MK', // Macedonia (FYROM)
   'ML', // Mali
   'MM', // Myanmar (Burma)
   'MN', // Mongolia
