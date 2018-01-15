@@ -47,7 +47,7 @@ goog.require('goog.userAgent');
  * manner.
  * @param {Element|Document} element The element to listen to the mouse wheel
  *     event on.
- * @param {boolean=} opt_capture Whether to handle the mouse wheel event in
+ * @param {(boolean|!AddEventListenerOptions)=} opt_capture Whether to handle the mouse wheel event in
  *     capture phase.
  * @constructor
  * @extends {goog.events.EventTarget}
